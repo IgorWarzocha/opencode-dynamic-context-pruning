@@ -22,7 +22,7 @@ export class Janitor {
         try {
             // Fetch session info and messages from OpenCode API
             this.logger.debug("janitor", "Fetching session info and messages", { sessionID })
-            
+
             const [sessionInfoResponse, messagesResponse] = await Promise.all([
                 this.client.session.get({ path: { id: sessionID } }),
                 this.client.session.messages({ path: { id: sessionID }, query: { limit: 100 } })
@@ -171,7 +171,7 @@ export class Janitor {
 
             // If there are no unpruned tool calls, skip analysis
             if (prunableToolCallIds.length === 0) {
-                this.logger.debug("janitor", "No prunable tool calls found, skipping analysis", { 
+                this.logger.debug("janitor", "No prunable tool calls found, skipping analysis", {
                     sessionID,
                     protectedCount: protectedToolCallIds.length
                 })
@@ -183,7 +183,7 @@ export class Janitor {
             const cachedModelInfo = this.modelCache.get(sessionID)
             const sessionModelInfo = extractModelFromSession(sessionInfo, this.logger)
             let currentModelInfo = cachedModelInfo || sessionModelInfo
-            
+
             // Skip GitHub Copilot for background analysis - it has expensive usage
             if (currentModelInfo && currentModelInfo.providerID === 'github-copilot') {
                 this.logger.info("janitor", "Skipping GitHub Copilot for analysis (expensive), forcing fallback", {
@@ -199,9 +199,9 @@ export class Janitor {
                     modelID: cachedModelInfo.modelID
                 })
             }
-            
+
             const modelSelection = await selectModel(currentModelInfo, this.logger)
-            
+
             this.logger.info("janitor", "Model selected for analysis", {
                 sessionID,
                 modelInfo: modelSelection.modelInfo,
