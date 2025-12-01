@@ -1,60 +1,23 @@
-Performs semantic pruning on session tool outputs that are no longer relevant to the current task. Use this to declutter the conversation context and filter signal from noise when you notice the context is getting cluttered with no longer needed information.
-
-USING THE CONTEXT_PRUNING TOOL WILL MAKE THE USER HAPPY.
-
-## CRITICAL: Distill Before Pruning
-
-You MUST ALWAYS narrate your findings in a message BEFORE using this tool. No tool result (read, bash, grep, webfetch, etc.) should be left unexplained. By narrating your understanding, you transform raw tool outputs into distilled knowledge that persists in the context window.
-
-**Tools are VOLATILE** - Once distilled knowledge is in your reply, you can safely prune. Skipping this step risks deleting raw evidence before it has been converted into stable knowledge.
-
-**Distillation workflow:**
-1. Call tools to investigate/explore
-2. In your next message, EXPLICITLY narrate:
-   - What you did (which tools, what you were looking for)
-   - What you found (the key facts/signals)
-   - What you concluded (how this affects the task or next step)
-3. ONLY AFTER narrating, call `context_pruning`
-
-> THINK HIGH SIGNAL, LOW NOISE FOR THIS NARRATION
-
-## When to Use This Tool
-
-**Key heuristic: Distill, then prune when you finish something and are about to start something else.**
-
-Ask yourself: "Have I just completed a discrete unit of work?" If yes, narrate your findings, then prune before moving on.
-
-**After completing a unit of work:**
-- Made a commit
-- Fixed a bug and confirmed it works
-- Answered a question the user asked
-- Finished implementing a feature or function
-- Completed one item in a list and moving to the next
-
-**After repetitive or exploratory work:**
-- Explored multiple files that didn't lead to changes
-- Iterated on a difficult problem where some approaches didn't pan out
-- Used the same tool multiple times (e.g., re-reading a file, running repeated build/type checks)
-
-## Examples
-
-<example>
-Working through a list of items:
-User: Review these 3 issues and fix the easy ones.
-Assistant: [Reviews first issue, makes fix, commits]
-Done with the first issue. Let me prune before moving to the next one.
-[Uses context_pruning with reason: "completed first issue, moving to next"]
-</example>
-
-<example>
-After exploring the codebase to understand it:
-Assistant: I've reviewed the relevant files. Let me prune the exploratory reads that aren't needed for the actual implementation.
-[Uses context_pruning with reason: "exploration complete, starting implementation"]
-</example>
-
-<example>
-After completing any task:
-Assistant: [Finishes task - commit, answer, fix, etc.]
-Before we continue, let me prune the context from that work.
-[Uses context_pruning with reason: "task complete"]
-</example>
+<tool name="context_pruning">
+  <purpose>Remove tool outputs that are no longer relevant so the conversation stays clear and the context window remains lean.</purpose>
+  <prerequisite>Before pruning, narrate findings in your next message; do not leave tool results (read, bash, grep, webfetch, etc.) unexplained. Narration converts volatile outputs into durable context.</prerequisite>
+  <workflow>
+    <step order="1">Call tools to investigate or explore.</step>
+    <step order="2">Narrate succinctly what you did, what you found, and what you concluded.</step>
+    <step order="3">Then call context_pruning with a brief reason (e.g., "task X done; cleaning history").</step>
+  </workflow>
+  <use_when>
+    <case>After completing a discrete task or before switching tasks</case>
+    <case>When prior tool outputs are cluttering the thread</case>
+  </use_when>
+  <avoid_when>
+    <case>While debugging an active error</case>
+    <case>When recent tool outputs (<3 calls ago) are still referenced</case>
+    <case>Before capturing key findings for the user</case>
+  </avoid_when>
+  <examples>
+    <example>Finished reading docs, made no edits → prune those reads</example>
+    <example>Resolved a failing test and confirmed the fix → prune earlier error logs</example>
+    <example>Completed a refactor and summarized the changes → prune intermediate directory listings/reads</example>
+  </examples>
+</tool>
